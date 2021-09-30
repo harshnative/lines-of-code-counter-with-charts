@@ -2,6 +2,10 @@ myvirtual/
 
 sampleCodeTest.py
 
+temp_linesOfCodeCounter/
+
+linesOfCodeCounter_db.db
+
 settings.txt
 
 oldVersion
