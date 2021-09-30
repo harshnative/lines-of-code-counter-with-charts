@@ -18,8 +18,14 @@ class SettingsClass:
 
         # default settings file data
         self.settingsFile = {
-  "userName": "None" , 
-  "githubToken": "None" , 
+  "userName": "None",
+  "githubToken": "None",
+  "include_comment": False,
+  "include_blanks": False,
+  "excludeLanguages": "SVG , JSON , LESS , C/C++ Header",
+  "useCache": True,
+  "topLanguages": 10,
+  "takeLog" : True,
 }
 
     
@@ -72,19 +78,3 @@ class SettingsClass:
             file.write(hjson.dumps(settingsFile))
 
 
-
-        
-    # function to open the settings using default opener
-    # None is retruned on succesfull opening 
-    # exception in string format is returned else wise
-    def openSettings(self):
-        try:
-            # startfile utility on windows
-            if(self.isOnWindows):
-                os.startfile(self.path)
-            else:
-                # using gedit on linux
-                os.system("sudo gedit " + self.path)
-            return None
-        except Exception as e:
-            return str(e)

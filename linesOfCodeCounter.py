@@ -8,6 +8,10 @@ import pexpect
 import subprocess
 from sqlitewrapper import SqliteCipher
 
+import matplotlib.pyplot as plt
+import math
+
+
 
 # class containing global variables
 class GlobalData:
@@ -167,11 +171,13 @@ def getReposFromGithub(includePrivateRepos):
 
     
     excludeLanguagesSetting = GlobalData.settingsDict.get("excludeLanguages" , "none")
+    
     if(accessToken.lower() != "none"):
         temp_excludeLanguages = excludeLanguagesSetting.split(',')
 
         for i in temp_excludeLanguages:
             excludeLanguages.append(str(i).strip())
+    
 
 
     useCache = GlobalData.settingsDict.get("excludeLanguages" , "false")
@@ -215,7 +221,7 @@ def getReposFromGithub(includePrivateRepos):
         pass
 
 
-    _ , reposFromDb = GlobalData.dbObj.getDataFromTable("repos" , omitID=True)
+    _ , reposFromDb = GlobalData.dbObj.getDataFromTable("repos" , omitID=False)
 
 
     # download the repos and get status using cloc
@@ -234,10 +240,13 @@ def getReposFromGithub(includePrivateRepos):
 
         if(useCache):
             for repoFromDB in reposFromDb:
-                if(i[2] == repoFromDB[0]):
-                    if((repoFromDB[1] == dateOfRepo) and (repoFromDB[2] == timeOfRepo)):
+                if(i[2] == repoFromDB[1]):
+                    if((repoFromDB[2] == dateOfRepo) and (repoFromDB[3] == timeOfRepo)):
                         foundInDb = True
                         result = repoFromDB[-1]
+                    else:
+                        # if the repo is outdated remove the repo from the db
+                        GlobalData.dbObj.deleteDataInTable("repos" , repoFromDB[0])
 
         # if the db is not found or is modified or useCache is False then download the new db
         if(not(foundInDb)):
@@ -314,7 +323,7 @@ def getReposFromGithub(includePrivateRepos):
             b = dict(b)
 
             # if the a is not in excluded list and not header
-            if((a != "header") or (search_excludeLanguages(excludeLanguages , a))):
+            if((not(search_excludeLanguages(excludeLanguages , a))) and (a != "header")):
                 
                 
                 innerDict = overAllResult.get(a , None)
@@ -344,6 +353,19 @@ def getReposFromGithub(includePrivateRepos):
         print("\n\n")
 
 
+    include_comment = GlobalData.settingsDict.get("include_comment" , "false")
+    include_blanks = GlobalData.settingsDict.get("include_blanks" , "false")
+
+    if(include_comment.lower() != "false"):
+        include_comment = True
+    else:
+        include_comment = False
+
+    if(include_blanks.lower() != "false"):
+        include_blanks = True
+    else:
+        include_blanks = False
+
     overAllResultList = []
 
     # convert dictionary to list
@@ -356,19 +378,6 @@ def getReposFromGithub(includePrivateRepos):
         else:
             tempList.append("TOTAL")
 
-
-        include_comment = GlobalData.settingsDict.get("include_comment" , "false")
-        include_blanks = GlobalData.settingsDict.get("include_blanks" , "false")
-
-        if(include_comment.lower() != "false"):
-            include_comment = True
-        else:
-            include_comment = False
-
-        if(include_blanks.lower() != "false"):
-            include_blanks = True
-        else:
-            include_blanks = False
 
         noOfLines = 0
         
@@ -384,9 +393,64 @@ def getReposFromGithub(includePrivateRepos):
 
         overAllResultList.append(tempList)
 
-    overAllResultList = sorted(overAllResultList , key=lambda x:x[1])
+    # sort the list according to no of code
+    overAllResultList = sorted(overAllResultList , key=lambda x:x[1] , reverse=True)
 
-    print(overAllResultList)
+    try:
+        topLanguages = int(GlobalData.settingsDict.get("topLanguages" , "8"))
+    except ValueError:
+        topLanguages = 8
+
+    overAllResultList = overAllResultList[:topLanguages]
+    
+    overAllResultListX = []
+    overAllResultListY = []
+    overAllResultListYLog = []
+
+    takeLog = GlobalData.settingsDict.get("takeLog" , "false")
+
+    if(takeLog.lower() != "false"):
+        takeLog = True
+    else:
+        takeLog = False
+
+
+    for i in overAllResultList:
+        overAllResultListX.append(i[0])
+        overAllResultListY.append(i[1])
+        overAllResultListYLog.append(math.log(i[1] , 10))
+
+    
+
+    # plot graph
+    my_colors = ['r','g','b','k','y','m','c']
+
+    if(takeLog):
+        plt.bar(range(len(overAllResultListY)), overAllResultListYLog, tick_label=overAllResultListX , color=my_colors)
+    else:
+        plt.bar(range(len(overAllResultListY)), overAllResultListY, tick_label=overAllResultListX , color=my_colors)
+
+    plt.yticks([])
+
+    # plotting the labels
+    for x,y in zip(range(len(overAllResultListY)), range(len(overAllResultListY))):
+
+        label = "{}K".format(round((overAllResultListY[y]/1000) , 2))
+        if(takeLog):
+            y = overAllResultListYLog[y]
+        else:
+            y = overAllResultListY[y]
+
+
+
+        a = plt.annotate(label, # this is the text
+                    (x,y), # these are the coordinates to position the label
+                    textcoords="offset points", # how to position the text
+                    xytext=(0,10), # distance from text to points (x,y)
+                    ha='center') # horizontal alignment can be left, right or center
+
+    plt.show()
+
 
 
         
