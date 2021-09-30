@@ -343,11 +343,55 @@ def getReposFromGithub(includePrivateRepos):
         
         print("\n\n")
 
-    for i,j in overAllResult.items():
-        print(i)
-        print(j)
 
-        print("\n\n")
+    overAllResultList = []
+
+    # convert dictionary to list
+    for i,j in overAllResult.items():
+
+        tempList = []
+
+        if(i != "SUM"):
+            tempList.append(i)
+        else:
+            tempList.append("TOTAL")
+
+
+        include_comment = GlobalData.settingsDict.get("include_comment" , "false")
+        include_blanks = GlobalData.settingsDict.get("include_blanks" , "false")
+
+        if(include_comment.lower() != "false"):
+            include_comment = True
+        else:
+            include_comment = False
+
+        if(include_blanks.lower() != "false"):
+            include_blanks = True
+        else:
+            include_blanks = False
+
+        noOfLines = 0
+        
+        if(include_blanks):
+            noOfLines = noOfLines + j.get("blank" , 0)
+        
+        if(include_comment):
+            noOfLines = noOfLines + j.get("comment" , 0)
+
+        noOfLines = noOfLines + j.get("code" , 0)
+
+        tempList.append(noOfLines)
+
+        overAllResultList.append(tempList)
+
+    overAllResultList = sorted(overAllResultList , key=lambda x:x[1])
+
+    print(overAllResultList)
+
+
+        
+
+        
 
 
 
