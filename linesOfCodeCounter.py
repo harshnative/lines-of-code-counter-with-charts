@@ -420,21 +420,28 @@ def getReposFromGithub(includePrivateRepos):
         overAllResultListY.append(i[1])
         overAllResultListYLog.append(math.log(i[1] , 10))
 
+
+    darkTheme = input("\nUse dark theme? [ y/n ] : ")
+
+    if(darkTheme.strip().lower() == 'y'):
+        darkTheme = True
+    else:
+        darkTheme = False
+
+    if(darkTheme):
+        my_colors = ['#42c8f5']
+        plt.style.use('dark_background')
+    else:
+        my_colors = ['#427ef5']
+
     
-
-    # plot graph
-    my_colors = ['r','g','b','k','y','m','c']
-
     if(takeLog):
         plt.bar(range(len(overAllResultListY)), overAllResultListYLog, tick_label=overAllResultListX , color=my_colors)
     else:
         plt.bar(range(len(overAllResultListY)), overAllResultListY, tick_label=overAllResultListX , color=my_colors)
 
-    plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams['font.sans-serif'] = 'Helvetica'
-    plt.rcParams['figure.figsize'] = (8, 5)
-
     plt.yticks([])
+    plt.xticks(weight = "bold")
 
     # plotting the labels
     for x,y in zip(range(len(overAllResultListY)), range(len(overAllResultListY))):
@@ -452,14 +459,14 @@ def getReposFromGithub(includePrivateRepos):
                     textcoords="offset points", # how to position the text
                     xytext=(0,10), # distance from text to points (x,y)
                     ha='center',
-                    color=my_colors[x % len(my_colors)],
                     weight='bold') # horizontal alignment can be left, right or center
 
 
-    plt.set_xlabel('Languages', labelpad=15, color='#333333')
-    plt.set_ylabel('Lines Of Code', labelpad=15, color='#333333')
-    plt.set_title('Lines of Code Written By {}'.format(username), pad=15, color='#333333',
-                weight='bold')
+    plt.xlabel('Languages',weight='bold')
+    plt.ylabel('Lines Of Code',weight='bold')
+    plt.title('Lines of Code Written By {}'.format(username),weight='bold')
+    
+    plt.tight_layout()
     plt.show()
 
 
