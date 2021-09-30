@@ -430,6 +430,10 @@ def getReposFromGithub(includePrivateRepos):
     else:
         plt.bar(range(len(overAllResultListY)), overAllResultListY, tick_label=overAllResultListX , color=my_colors)
 
+    plt.rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = 'Helvetica'
+    plt.rcParams['figure.figsize'] = (8, 5)
+
     plt.yticks([])
 
     # plotting the labels
@@ -447,8 +451,15 @@ def getReposFromGithub(includePrivateRepos):
                     (x,y), # these are the coordinates to position the label
                     textcoords="offset points", # how to position the text
                     xytext=(0,10), # distance from text to points (x,y)
-                    ha='center') # horizontal alignment can be left, right or center
+                    ha='center',
+                    color=my_colors[x % len(my_colors)],
+                    weight='bold') # horizontal alignment can be left, right or center
 
+
+    plt.set_xlabel('Languages', labelpad=15, color='#333333')
+    plt.set_ylabel('Lines Of Code', labelpad=15, color='#333333')
+    plt.set_title('Lines of Code Written By {}'.format(username), pad=15, color='#333333',
+                weight='bold')
     plt.show()
 
 
